@@ -1,7 +1,17 @@
+
+using Microsoft.EntityFrameworkCore;
+using ToDoListApp.BusinessLogic.Service;
+using ToDoListApp.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+builder.Services.AddDbContext<ToDoContext>(options=>options.UseSqlServer(builder.Configuration.GetConnectionString("conn")));
+//contexi alýp unitofwork baðlýyor 
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IToDoService, ToDoService>();  
 
 var app = builder.Build();
 
