@@ -1,5 +1,6 @@
 ﻿using ToDoListApp.BusinessLogic.Dtos;
 using ToDoListApp.Data;
+using ToDoListApp.Data.Entities;
 
 namespace ToDoListApp.BusinessLogic.Service
 {
@@ -17,22 +18,22 @@ namespace ToDoListApp.BusinessLogic.Service
             if (toDo != null)
             {
                 await unitOfWork.ToDoRepository.DeleteAsync(toDo);
+                await unitOfWork.CommitAsync();
             }
         }
 
+       
 
-        public async Task<IEnumerable<ToDoDto>> GetAll()
-        {
-            return from t in await unitOfWork.ToDoRepository.ReadManyAsync() select new ToDoDto
+        public async Task<IEnumerable<ToDoDto>> GetAllAsync()
+        { return from t in await unitOfWork.ToDoRepository.ReadManyAsync() select new ToDoDto
                    {
                        Id = t.Id,
                        Content = t.Content,
                        CreatedAt = t.CreatedAt,
                        Done = t.Done
                    };
+            
         }
-
-       
 
         public async Task<ToDoDto?> GetByIdAsync(int id)
         {
@@ -51,19 +52,35 @@ namespace ToDoListApp.BusinessLogic.Service
             return null;
         }
 
-        public Task NewAsync(string content)
+        public async Task NewAsync(string content)
         {
-            throw new NotImplementedException();
+            ToDo todo = new ToDo { Content = content };
+            await unitOfWork.ToDoRepository.CreateAsync(todo);
+            await unitOfWork.CommitAsync();
         }
 
-        public Task ToggleAsync(int id)
+        public async Task ToggleAsync(int id)
         {
-            throw new NotImplementedException();
+            
+            var toDo = await unitOfWork.ToDoRepository.FindByIdAsync(id);
+            if(toDo != null)
+            {  
+                toDo.Done = !toDo.Done;
+                await unitOfWork.ToDoRepository.UpdateAsync(toDo);
+                await unitOfWork.CommitAsync();
+            }
+          
         }
 
-        public Task UpdateAsync(string content)
+        public async Task UpdateAsync(int id , string content)
         {
-            throw new NotImplementedException();
+            var toDo = await unitOfWork.ToDoRepository.FindByIdAsync(id);
+            if (toDo != null)
+            {
+                toDo.Content = content;
+                await unitOfWork.ToDoRepository.UpdateAsync(toDo);
+                await unitOfWork.CommitAsync();
+            }
         }
     }
 }

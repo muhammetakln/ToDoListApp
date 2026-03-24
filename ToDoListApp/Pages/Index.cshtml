@@ -4,7 +4,161 @@
     ViewData["Title"] = "Home page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            @* Header *@
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary">📝 ToDo List</h1>
+                <p class="text-muted">Organize your tasks efficiently</p>
+            </div>
+
+            @* Add/Edit Form Card *@
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        @if (Model.SelectedToDo != null)
+                        {
+                            <i class="bx bx-edit"></i> <text>Edit Task</text>
+                        }
+                        else
+                        {
+                            <i class="bx bx-plus-circle"></i> <text>Add New Task</text>
+                        }
+                    </h5>
+                    
+                    <form asp-page="Index" method="post" asp-page-handler="@(Model.SelectedToDo != null ? "Edit" : "")">
+                        @if (Model.SelectedToDo != null)
+                        {
+                            <input type="hidden" value="@Model.SelectedToDo.Id" name="id" />
+                            <div class="mb-3">
+                                <textarea name="Content" class="form-control" rows="3" placeholder="Update your task...">@Model.SelectedToDo.Content</textarea>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bx bx-save"></i> Update
+                                </button>
+                                <a asp-page="Index" class="btn btn-secondary">
+                                    <i class="bx bx-x"></i> Cancel
+                                </a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mb-3">
+                                <textarea name="Content" class="form-control" rows="3" placeholder="What needs to be done?"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-plus"></i> Add Task
+                            </button>
+                        }
+                    </form>
+                </div>
+            </div>
+
+            @* ToDo List *@
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bx bx-list-ul"></i> Your Tasks 
+                        <span class="badge bg-primary rounded-pill float-end">@Model.ToDos.Count()</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.ToDos.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var toDo in Model.ToDos)
+                            {
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1 @(toDo.Done ? "text-decoration-line-through text-muted" : "")">
+                                                <span class="me-2">@(toDo.Done ? "✅" : "⭕")</span>
+                                                @toDo.Content
+                                            </h5>
+                                            @if (toDo.Done)
+                                            {
+                                                <small class="text-success">
+                                                    <i class="bx bx-check-circle"></i> Completed
+                                                </small>
+                                            }
+                                        </div>
+                                        
+                                        <div class="btn-group" role="group">
+                                            @* Toggle Done *@
+                                            <form method="post" asp-page-handler="ToggleDone" asp-route-id="@toDo.Id" style="display: inline;">
+                                                <button type="submit" class="btn @(toDo.Done ? "btn-outline-warning" : "btn-outline-success") btn-sm" title="@(toDo.Done ? "Mark as Incomplete" : "Mark as Complete")">
+                                                    <i class="bx @(toDo.Done ? "bx-revision" : "bx-check")"></i>
+                                                    @(toDo.Done ? "Undo" : "Done")
+                                                </button>
+                                            </form>
+                                            
+                                            @* Edit *@
+                                            <a asp-page="Index" asp-route-id="@toDo.Id" class="btn btn-outline-primary btn-sm" title="Edit Task">
+                                                <i class="bx bx-edit"></i>
+                                                Edit
+                                            </a>
+                                            
+                                            @* Delete *@
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@toDo.Id" style="display: inline;">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to delete this task?')" title="Delete Task">
+                                                    <i class="bx bx-trash"></i>
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bx bx-clipboard display-1 text-muted"></i>
+                            <p class="text-muted mt-3">No tasks yet. Add your first task above!</p>
+                        </div>
+                    }
+                </div>
+                
+                @* Footer Stats *@
+                @if (Model.ToDos.Any())
+                {
+                    <div class="card-footer bg-light">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <small class="text-muted d-block">Total</small>
+                                <strong>@Model.ToDos.Count()</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Completed</small>
+                                <strong class="text-success">@Model.ToDos.Count(t => t.Done)</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Pending</small>
+                                <strong class="text-warning">@Model.ToDos.Count(t => !t.Done)</strong>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
 </div>
+
+<style>
+    .btn-group .btn {
+        margin-left: -1px;
+    }
+    
+    .list-group-item {
+        transition: background-color 0.2s;
+    }
+    
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+</style>
